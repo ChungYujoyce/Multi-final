@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+</html>
+
+<head>
+    <title>Segmentation App Test</title>
+    <meta charset="utf-8">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    <script src="{{ url_for('static', filename='js/main.js') }}" type="text/javascript"></script>
+    <style>
+        * {
+          box-sizing: border-box;
+        }
+        
+        .column {
+          float: left;
+          width: 33.33%;
+          padding: 5px;
+        }
+        
+        /* Clearfix (clear floats) */
+        .row::after {
+          content: "";
+          clear: both;
+          display: table;
+        }
+        </style>
+</head>
+
+<body>
+    <h1 class="brand">Segmentation with Deeplab and MobileNet</h1>
+    <h2>A Web Hosted Image Test</h2>
+    <div class="row">
+        <div class="column">
+            <img title="original image" src="{{ url_for('static', filename = original_image) }}" alt="User Image" style="width:100%">
+        </div>
+        <div class="column">
+            <img title="overlay image" src="{{ url_for('static', filename = bicubic_image) }}" alt="User Image" style="width:100%">
+        </div>
+        <canvas id="canvas" title="segmentation image" alt="User Image" width="400" height="270"></canvas>
+        <div id="color" class="center" style="float:right;"></div>
+        <div id="label" class="center" style="color:aqua; font-family:fantasy; font-size: 25px;"></div>
+        <br><br>
+        <script>
+            var img = new Image();
+            img.crossOrigin = '';
+            img.src = "{{url_for('static', filename=result_image)}}"
+            var canvas = document.getElementById('canvas');
+            var ctx = canvas.getContext('2d');
+            img.onload = function () {
+                ctx.drawImage(img, 0, 0, 400, 270);
+                img.style.display = 'none';
+            };
+            var color = document.getElementById('color');
+
+            function pick(event) {
+                var x = event.layerX;
+                var y = event.layerY;
+                var pixel = ctx.getImageData(x, y, 1, 1);
+                var data = pixel.data;
+
+                console.log(data);
+                var rgba = 'rgba(' + data[0] + ',' + data[1] +
+                    ',' + data[2] + ',' + (data[3] / 255) + ')';
+                color.style.background = rgba;
+                var means = ""
+                if (data[0] == 70 && data[1] == 130 && data[2] == 180) {
+                    means = "sky"
+                } else if (data[0] == 128 && data[1] == 64 && data[2] == 128) {
+                    means = "road"
+                } else if (data[0] == 244 && data[1] == 35 && data[2] == 232) {
+                    means = "sidewalk"
+                } else if (data[0] == 70 && data[1] == 70 && data[2] == 70) {
+                    means = "building"
+                } else if (data[0] == 102 && data[1] == 102 && data[2] == 156) {
+                    means = "wall"
+                } else if (data[0] == 190 && data[1] == 153 && data[2] == 153) {
+                    means = "fence"
+                } else if (data[0] == 153 && data[1] == 153 && data[2] == 153) {
+                    means = "polegroup"
+                } else if (data[0] == 250 && data[1] == 170 && data[2] == 30) {
+                    means = "traffic light"
+                } else if (data[0] == 220 && data[1] == 220 && data[2] == 0) {
+                    means = "traffic sign"
+                } else if (data[0] == 107 && data[1] == 142 && data[2] == 35) {
+                    means = "vegetation"
+                } else if (data[0] == 152 && data[1] == 251 && data[2] == 152) {
+                    means = "terrain"
+                } else if (data[0] == 220 && data[1] == 20 && data[2] == 60) {
+                    means = "person"
+                } else if (data[0] == 0 && data[1] == 0 && data[2] == 140) {
+                    means = "car"
+                } else if (data[0] == 255 && data[1] == 0 && data[2] == 0) {
+                    means = "rider"
+                } else if (data[0] == 0 && data[1] == 0 && data[2] == 70) {
+                    means = "truck"
+                } else if (data[0] == 0 && data[1] == 80 && data[2] == 100) {
+                    means = "train"
+                } else if (data[0] == 0 && data[1] == 0 && data[2] == 230) {
+                    means = "motorcycle"
+                } else if (data[0] == 0 && data[1] == 60 && data[2] == 100) {
+                    means = "bus"
+                } else if (data[0] == 119 && data[1] == 11 && data[2] == 32) {
+                    means = "bicycle"
+                }
+                color.textContent = rgba;
+                label.textContent = means;
+                label.textContent.color = "green";
+            }
+            canvas.addEventListener('mousemove', pick);
+        </script>
+        <div>
+            <h3 class="center" style="color:white;">Spend Time:{{time_spent}} seconds</h3>
+        </div>
+        <p style="font-size: 15px; font-family: 'Times New Roman', Times, serif;">{{color_means}}</p>
+    </div>
+    <a href="/return"><input type="button" value="Convert another photo" class="button"></a>
+    </form>
+    <p class="txtcenter">Upload photo to upsample<br />Doesn't provide much, just a demo.</p>
+    <p class="txtcenter copy">NTHU inference, Introduction to Multimedia</p>
+</body>
+
+</html>
